@@ -1,6 +1,5 @@
 package gui;
 
-import javax.swing.*;
 import java.awt.*;
 
 public class GameBoard extends GamePanel {
@@ -12,31 +11,46 @@ public class GameBoard extends GamePanel {
     private Tile[][] tiles = new Tile[size][size];
     private BoardListener boardListener;
     private String currentPlayer;
+    private boolean yourTurn;
 
-    public GameBoard(){ //todo make it package accessible
-//        currentPlayer="X"
+    public GameBoard() { //todo make it package accessible
+        currentPlayer = "X";
+        yourTurn = true;
+
         setTiles();
         addTiles();
-        setSize(new Dimension(size * (tileSize+gapSize)-gapSize,size * (tileSize+gapSize)-gapSize));
+        setSize(new Dimension(size * (tileSize + gapSize) - gapSize, size * (tileSize + gapSize) - gapSize));
     }
 
-    private void setTiles(){
-        for (int i = 0; i <size ; i++) {
-            for (int j = 0; j <size ; j++) {
+    private void setTiles() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+
                 Tile tile = new Tile();
-//                tile.addMouseListener();
-                tiles[i][j]=tile;
+                tiles[i][j] = tile;
+
+                tile.addActionListener(e -> {
+                    Tile selectedTile = ((Tile) e.getSource());
+                    if (!selectedTile.isFilled()) {
+                        selectedTile.setXO(currentPlayer, !yourTurn);
+                        //todo sync with enemy + check result
+                        //if ( boardListener != null ) boardListener.update();
+                        yourTurn = !yourTurn;
+                        if (currentPlayer.equals("X")) currentPlayer = "O";
+                        else currentPlayer = "X";
+                    }
+                });
             }
         }
     }
 
     private void addTiles() {
-        setLayout(new GridLayout(size , size,10,10));
+        //todo combine with setTiles method
+        setLayout(new GridLayout(size, size, 10, 10));
         setBackground(Color.BLACK);
-        for (int i = 0; i <size ; i++) {
-            for (int j = 0; j <size ; j++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 add(tiles[i][j]);
-
             }
         }
     }
