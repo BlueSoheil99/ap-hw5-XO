@@ -1,9 +1,6 @@
 package network;
 
-import gui.GameBoard;
-import gui.GameFrame;
-import gui.LoginAndRegisterPanel;
-import gui.MenuPanel;
+import gui.*;
 
 public class XOClient {
     private Account player;
@@ -32,7 +29,7 @@ public class XOClient {
         runMenu();
     }
 
-    private void runMenu() {
+    public void runMenu() {
         System.out.println("menu ran");
         menu = new MenuPanel(this);
         frame.initFrame(menu);
@@ -62,7 +59,7 @@ public class XOClient {
     public void playMulti() {
         System.out.println("initializing multiPlayer");
         stopMenu();
-        frame.initFrame(new GameBoard());
+        frame.initFrame(new PlayPanel(this,"test" , "X","O",true));
 
     }
 

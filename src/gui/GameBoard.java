@@ -4,55 +4,53 @@ import java.awt.*;
 
 public class GameBoard extends GamePanel {
 
-    private int size = 4;
-    private int tileSize = 100;
-    private int gapSize = 10;
+    private final int size = 7;
+    private final int tileSize = 80;
+    private final int gapSize = 5;
 
-    private Tile[][] tiles = new Tile[size][size]; //todo make it as Tile[size*size]
+    private Tile[] tiles = new Tile[size * size];
     private BoardListener boardListener;
-    private String currentPlayer;
+    private String playerSign;
     private boolean yourTurn;
 
-    public GameBoard() { //todo make it package accessible
-        super();
-        currentPlayer = "X";
-        yourTurn = true;
+    public GameBoard(String playerSign) { //todo make it package accessible
+        this.playerSign = playerSign;
+        yourTurn = true; //todo
 
         setTiles();
         addTiles();
-        setSize(new Dimension(size * (tileSize + gapSize) - gapSize, size * (tileSize + gapSize) - gapSize));
+        setPreferredSize(new Dimension(size * (tileSize + gapSize) - gapSize, size * (tileSize + gapSize) - gapSize));
     }
 
     private void setTiles() {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i = 0; i < size * size; i++) {
+            Tile tile = new Tile();
+            tiles[i] = tile;
 
-                Tile tile = new Tile();
-                tiles[i][j] = tile;
-
-                tile.addActionListener(e -> {
-                    Tile selectedTile = ((Tile) e.getSource());
-                    if (!selectedTile.isFilled()) {
-                        selectedTile.setXO(currentPlayer, !yourTurn);
-                        //todo sync with enemy + check result in here or in boardListener
-                        //if ( boardListener != null ) boardListener.update();
-                        yourTurn = !yourTurn;
-                        if (currentPlayer.equals("X")) currentPlayer = "O";
-                        else currentPlayer = "X";
-                    }
-                });
-            }
+            tile.addActionListener(e -> {
+                Tile selectedTile = ((Tile) e.getSource());
+                if (!selectedTile.isFilled()) {
+                    selectedTile.setXO(playerSign, !yourTurn);
+                    //todo sync with enemy + check result in here or in boardListener
+                    //if ( boardListener != null ) boardListener.update();
+                    yourTurn = !yourTurn;
+                    if (playerSign.equals("X")) playerSign = "O";
+                    else playerSign = "X";
+                }
+            });
         }
     }
 
     private void addTiles() {
         //todo combine with setTiles method
-        setLayout(new GridLayout(size, size, 10, 10));
+        setLayout(new GridLayout(size, size, gapSize, gapSize));
         setBackground(Color.BLACK);
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                add(tiles[i][j]);
-            }
+        for (int i = 0; i < size * size; i++) {
+            add(tiles[i]);
         }
+    }
+
+    public void setEnabled(boolean enabled) {
+        //todo
     }
 }

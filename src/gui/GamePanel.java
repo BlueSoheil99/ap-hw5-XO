@@ -11,7 +11,7 @@ public class GamePanel extends JPanel {
 
     GamePanel(){
         setBackground(new Color(212, 249, 254));
-        setSize(new Dimension(800, 600));
+        setSize(new Dimension(1000, 700));
     }
 
 }
