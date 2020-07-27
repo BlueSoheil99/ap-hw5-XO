@@ -1,3 +1,5 @@
+package gui;
+
 import javax.swing.*;
 
 public class GameFrame extends JFrame {
@@ -7,14 +9,14 @@ public class GameFrame extends JFrame {
         setResizable(false);
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
     }
 
     public void initFrame(JPanel panel) {
         setContentPane(panel);
         setPreferredSize(panel.getSize());
-        setMinimumSize(panel.getSize()); // without it farme gets smaller and smaller
+//        setMinimumSize(panel.getSize()); // without it frame gets smaller and smaller
         pack();
         revalidate();
+        setLocationRelativeTo(null);
     }
 }
