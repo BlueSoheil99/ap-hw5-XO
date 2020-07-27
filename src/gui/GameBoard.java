@@ -8,12 +8,13 @@ public class GameBoard extends GamePanel {
     private int tileSize = 100;
     private int gapSize = 10;
 
-    private Tile[][] tiles = new Tile[size][size];
+    private Tile[][] tiles = new Tile[size][size]; //todo make it as Tile[size*size]
     private BoardListener boardListener;
     private String currentPlayer;
     private boolean yourTurn;
 
     public GameBoard() { //todo make it package accessible
+        super();
         currentPlayer = "X";
         yourTurn = true;
 
@@ -33,7 +34,7 @@ public class GameBoard extends GamePanel {
                     Tile selectedTile = ((Tile) e.getSource());
                     if (!selectedTile.isFilled()) {
                         selectedTile.setXO(currentPlayer, !yourTurn);
-                        //todo sync with enemy + check result
+                        //todo sync with enemy + check result in here or in boardListener
                         //if ( boardListener != null ) boardListener.update();
                         yourTurn = !yourTurn;
                         if (currentPlayer.equals("X")) currentPlayer = "O";
