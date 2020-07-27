@@ -8,5 +8,17 @@ public class PlayPanel extends GamePanel {
     private JMenu menu;
     private JMenuItem menuItem;
 
+    public PlayPanel() {
+        createFields();
+        render();
+    }
 
+    private void createFields() {
+        board = new GameBoard();
+
+    }
+
+    private void render() {
+        add(board);
+    }
 }

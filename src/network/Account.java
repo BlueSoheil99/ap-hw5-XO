@@ -29,12 +29,16 @@ public class Account {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
-    public void setScore(int score) {
-        this.score = score;
+//    public void setScore(int score) {
+//        this.score = score;
+//    }
+
+    public int getScore() {
+        return wins - losses;
     }
 
     public boolean isOnline() {
@@ -62,10 +66,6 @@ public class Account {
     }
 
     void saveAccount() {
-
-    }
-
-    void getScore() {
 
     }
 }

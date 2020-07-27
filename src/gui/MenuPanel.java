@@ -5,32 +5,53 @@ import network.XOClient;
 import javax.swing.*;
 import java.awt.*;
 
-public class MenuPanel extends GamePanel {
+public class MenuPanel extends GamePanel implements Runnable {
     private XOClient client;
-    private JLabel title, welcomeMsg;
-    private JButton soloBtn, multiBtn;
+
+    private String[] stats;
+    private boolean updateEnabled;
+    private ScoreBoard scoreBoard;
+    private JLabel title, welcomeMsg, statsLabel;
+    private JButton multiBtn;
 
 
     public MenuPanel(XOClient client) {
         this.client = client;
+        updateEnabled = true;
         createFields();
         render();
+        Thread thread = new Thread(this);
+        thread.start();
+    }
+
+    @Override
+    public void run() {
+        while (updateEnabled) {
+            try {
+                updateScoreBoard();
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void stopUpdating() {
+        updateEnabled = false;
     }
 
     private void createFields() {
+        statsLabel = new JLabel();
+        updateStates();
+        updateScoreBoard();
         title = new JLabel("XO");
-        welcomeMsg = new JLabel("Hi " + client.getPlayerName() + " :)  welcome to ");
-        soloBtn = new JButton("     Solo Game     ");
+        welcomeMsg = new JLabel("Hi " + stats[0] + " :)  welcome to ");
         multiBtn = new JButton("MultiPlayer Game");
         title.setFont(titleFont);
         welcomeMsg.setFont(font3);
-        soloBtn.setFont(font1);
+        statsLabel.setFont(font2);
         multiBtn.setFont(font1);
-        setActionListeners();
-    }
 
-    private void setActionListeners() {
-        soloBtn.addActionListener(e -> client.playSolo());
         multiBtn.addActionListener(e -> client.playMulti());
     }
 
@@ -43,7 +64,24 @@ public class MenuPanel extends GamePanel {
 
         add(welcomeMsg, gc);
         add(title, gc);
-        add(soloBtn, gc);
+        add(statsLabel, gc);
         add(multiBtn, gc);
+        gc.gridy = 0;
+        gc.gridx = 1;
+        gc.gridheight = 4;
+        add(new JScrollPane(scoreBoard), gc);
+    }
+
+
+    private void updateStates() {
+        stats = client.getStates();
+        statsLabel.setText("Wins: " + stats[1] + "  Losses: " + stats[2] + "  Score: " + stats[3]);
+
+    }
+
+    public void updateScoreBoard() {
+        //todo check this part later
+        scoreBoard = new ScoreBoard(client.getBoardUpdates());
+        scoreBoard.update(client.getBoardUpdates());
     }
 }

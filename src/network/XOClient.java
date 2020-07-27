@@ -8,6 +8,7 @@ import gui.MenuPanel;
 public class XOClient {
     private Account player;
     private GameFrame frame;
+    private MenuPanel menu;
 
 
     public static void main(String[] args) {
@@ -20,33 +21,49 @@ public class XOClient {
     }
 
     public void register(String userName, String password) throws XOException {
-
+        //todo
         System.out.println("registered");
-
     }
 
     public void login(String userName, String password) throws XOException {
+        //todo
         System.out.println("logged in");
 //        player = get player from server;
         runMenu();
     }
 
-    private void runMenu() { //todo combine with login method
+    private void runMenu() {
         System.out.println("menu ran");
-        frame.initFrame(new MenuPanel(this));
+        menu = new MenuPanel(this);
+        frame.initFrame(menu);
     }
 
-    public String getPlayerName() {
-        if (player != null) return player.getName();
-        return "Guest";
+    private void stopMenu() {
+        menu.stopUpdating();
+        menu = null;
     }
 
-    public void playSolo() {
-        frame.initFrame(new GameBoard());
+    public String[] getStates() {
+        String[] stats = new String[]{"Guest", "0", "0", "0"};
+        if (player != null) {
+            stats[0] = player.getName();
+            stats[1] = Integer.toString(player.getWins());
+            stats[2] = Integer.toString(player.getLosses());
+            stats[3] = Integer.toString(player.getScore());
+        }
+        return stats;
+    }
+
+    public String[][] getBoardUpdates() {
+        //todo
+        return new String[100][3];
     }
 
     public void playMulti() {
         System.out.println("initializing multiPlayer");
+        stopMenu();
+        frame.initFrame(new GameBoard());
+
     }
 
 }
