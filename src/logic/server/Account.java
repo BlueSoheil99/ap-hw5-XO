@@ -1,4 +1,4 @@
-package network;
+package logic.server;
 
 public class Account {
     private String name;
@@ -29,14 +29,6 @@ public class Account {
         return password;
     }
 
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
-
-//    public void setScore(int score) {
-//        this.score = score;
-//    }
-
     public int getScore() {
         return wins - losses;
     }
@@ -65,7 +57,4 @@ public class Account {
         this.losses = losses;
     }
 
-    void saveAccount() {
-
-    }
 }

@@ -1,7 +1,7 @@
 package gui;
 
-import network.XOClient;
-import network.XOException;
+import logic.client.XOClient;
+import logic.XOException;
 
 import javax.swing.*;
 import java.awt.*;

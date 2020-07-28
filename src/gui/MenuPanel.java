@@ -1,6 +1,6 @@
 package gui;
 
-import network.XOClient;
+import logic.client.XOClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +13,7 @@ public class MenuPanel extends GamePanel implements Runnable {
     private ScoreBoard scoreBoard;
     private JLabel title, welcomeMsg, statsLabel;
     private JButton multiBtn;
+    // todo check if there is a need for having a quit btn
 
 
     public MenuPanel(XOClient client) {
@@ -76,7 +77,6 @@ public class MenuPanel extends GamePanel implements Runnable {
     private void updateStates() {
         stats = client.getStates();
         statsLabel.setText("Wins: " + stats[1] + "  Losses: " + stats[2] + "  Score: " + stats[3]);
-
     }
 
     public void updateScoreBoard() {

@@ -1,6 +1,7 @@
 package gui;
 
-import network.XOClient;
+import logic.BoardListener;
+import logic.client.XOClient;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,8 +17,9 @@ public class PlayPanel extends GamePanel {
 
     public PlayPanel(XOClient client, String opponentName, String playerSign, String opponentSign, boolean isPlayerTurn) {
         this.client = client;
-        playerLabel = new JLabel("You: " + playerSign);
-        opponentLabel = new JLabel(opponentName + ": " + opponentSign);
+        playerLabel = new JLabel(" You: " + playerSign);
+        opponentLabel = new JLabel(" " + opponentName + ": " + opponentSign);
+        turnLabel = new JLabel();
         opponentLabel.setFont(font1);
         playerLabel.setFont(font1);
         board = new GameBoard(playerSign, isPlayerTurn);
@@ -69,16 +71,21 @@ public class PlayPanel extends GamePanel {
     }
 
     private void setTurn() {
-        board.setEnabled(isPlayerTurn);
+//        board.setEnabled(isPlayerTurn); todo enabling board has conflicts with gameBoard itself. check it later
         if (isPlayerTurn) {
-            turnLabel = new JLabel("YOUR TURN");
+            turnLabel.setText(" YOUR TURN ");
             turnLabel.setForeground(Color.GREEN);
         } else {
-            turnLabel = new JLabel("WAIT");
+            turnLabel.setText("       WAIT       ");
+
             turnLabel.setForeground(Color.RED);
         }
         turnLabel.setFont(font2);
+    }
 
+    public void changeTurn() {
+        isPlayerTurn = !isPlayerTurn;
+        setTurn();
     }
 
     public void setBoardListener(BoardListener boardListener) {
@@ -86,18 +93,27 @@ public class PlayPanel extends GamePanel {
     }
 
     public void playerWon(Integer[] winningTiles) {
-        turnLabel = new JLabel("YOU WON");
+        turnLabel.setText("   YOU WON  ");
         turnLabel.setForeground(Color.GREEN);
-        board.setEnabled(false);
-        board.setWinningTiles(true , winningTiles);
+        board.setWinningTiles(true, winningTiles);
+        endGame();
     }
 
     public void playerLost(Integer[] winningTiles) {
-        turnLabel = new JLabel("YOU LOST");
+        turnLabel.setText("   YOU LOST ");
         turnLabel.setForeground(Color.RED);
+        board.setWinningTiles(false, winningTiles);
+        endGame();
+    }
+
+    public void tie() {
+        turnLabel.setText("  MATCH TIED");
+        turnLabel.setForeground(Color.BLUE);
+        endGame();
+    }
+
+    private void endGame() {
+        matchFinished = true;
         board.setEnabled(false);
-        board.setWinningTiles(false , winningTiles);
-
-
     }
 }

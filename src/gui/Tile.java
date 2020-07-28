@@ -14,8 +14,6 @@ public class Tile extends JButton {
     Tile(int tileNumber) {
         this.tileNumber = tileNumber;
         drawTile();
-//        setPreferredSize(new Dimension(size, size));
-//        setMinimumSize(new Dimension(size, size));
         addMouseListener(getListener());
     }
 
@@ -58,7 +56,7 @@ public class Tile extends JButton {
 
     void setToWinnerTile(boolean playerIsWinner) {
         //to show the winning tiles
-        setForeground(new Color(249, 217, 9));
+        setBorder(BorderFactory.createLineBorder(new Color(249, 217, 9) , 5));
         if (playerIsWinner) setBackground(new Color(0, 255, 0));  //for winner
         else setBackground(new Color(255, 0, 0)); //for loser
     }

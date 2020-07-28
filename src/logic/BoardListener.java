@@ -1,4 +1,4 @@
-package gui;
+package logic;
 
 import java.util.EventListener;
 

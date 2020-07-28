@@ -1,5 +1,7 @@
 package gui;
 
+import logic.BoardListener;
+
 import java.awt.*;
 
 public class GameBoard extends GamePanel {
@@ -11,17 +13,17 @@ public class GameBoard extends GamePanel {
     private Tile[] tiles = new Tile[size * size];
     private BoardListener boardListener;
     private String playerSign, opponentSign;
-    private boolean yourTurn;
+    private boolean playerTurn;
 
     GameBoard(String playerSign, boolean playerTurn) {
         this.playerSign = playerSign;
         if (playerSign.equals("X")) opponentSign = "O";
         else opponentSign = "X";
-        yourTurn = playerTurn;
+        this.playerTurn = playerTurn;
+        setPreferredSize(new Dimension(size * (tileSize + gapSize) - gapSize, size * (tileSize + gapSize) - gapSize));
 
         setTiles();
         addTiles();
-        setPreferredSize(new Dimension(size * (tileSize + gapSize) - gapSize, size * (tileSize + gapSize) - gapSize));
     }
 
     private void setTiles() {
@@ -31,16 +33,29 @@ public class GameBoard extends GamePanel {
 
             tile.addActionListener(e -> {
                 Tile selectedTile = ((Tile) e.getSource());
+//                if (!selectedTile.isFilled() && playerTurn) {
                 if (!selectedTile.isFilled()) {
-                    selectedTile.setXO(playerSign, !yourTurn);
-                    //todo sync with enemy + check result in here or in boardListener
-                    if (boardListener != null) boardListener.selectPlayer(tile.getTileNumber());
-                    yourTurn = !yourTurn;
-                    if (playerSign.equals("X")) playerSign = "O";
-                    else playerSign = "X";
+                    if (playerTurn) {
+                        selectedTile.setXO(playerSign, false);
+                        changeTurn();
+                        if (boardListener != null) boardListener.selectPlayer(tile.getTileNumber());
+                    } else {
+                        setEnemyXO(tile.getTileNumber());
+                        if (boardListener != null) boardListener.selectOpponent(tile.getTileNumber());
+                    }
                 }
             });
         }
+    }
+
+    void setEnemyXO(int tileNumber) {
+        tiles[tileNumber].setXO(opponentSign, true);
+        changeTurn();
+    }
+
+    private void changeTurn() {
+        playerTurn = !playerTurn;
+
     }
 
     private void addTiles() {
@@ -49,10 +64,6 @@ public class GameBoard extends GamePanel {
         for (int i = 0; i < size * size; i++) {
             add(tiles[i]);
         }
-    }
-
-    void setEnemyXO(int tileNumber) {
-        tiles[tileNumber].setXO(opponentSign, true);
     }
 
     void setWinningTiles(boolean playerWon, Integer[] winningTiles) {

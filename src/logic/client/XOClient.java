@@ -1,6 +1,9 @@
-package network;
+package logic.client;
 
 import gui.*;
+import logic.BoardListener;
+import logic.XOException;
+import logic.server.Account;
 
 public class XOClient {
     private Account player;
@@ -19,6 +22,7 @@ public class XOClient {
     public XOClient() {
         frame = new GameFrame();
         frame.initFrame(new LoginAndRegisterPanel(this));
+        //todo connect
     }
 
     public void register(String userName, String password) throws XOException {
@@ -78,14 +82,21 @@ public class XOClient {
             public void selectPlayer(int tileNumber) {
                 System.out.println(tileNumber + " selected");
                 board[tileNumber] = playerSign;
+                playPanel.changeTurn();
                 Integer[] winningTiles = gameLogic.checkForWin(true);
                 if (winningTiles != null) playPanel.playerWon(winningTiles);
+                else if (gameLogic.checkForTie())playPanel.tie();
             }
 
             @Override
             public void selectOpponent(int tileNumber) {
+                System.out.println(tileNumber + " selected");
+                board[tileNumber] = opponentSign;
+                playPanel.changeTurn();
                 Integer[] winningTiles = gameLogic.checkForWin(false);
                 if (winningTiles != null) playPanel.playerLost(winningTiles);
+                else if (gameLogic.checkForTie())playPanel.tie();
+
             }
         });
         frame.initFrame(playPanel);
