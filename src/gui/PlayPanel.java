@@ -10,17 +10,17 @@ public class PlayPanel extends GamePanel {
     private GameBoard board;
 
     private JButton exitBtn;
-    private JLabel playerLabel , opponentLabel, turnLabel;
+    private JLabel playerLabel, opponentLabel, turnLabel;
     private boolean isPlayerTurn;
-    private boolean matchFinished=false;
+    private boolean matchFinished = false;
 
-    public PlayPanel(XOClient client , String opponentName , String playerSign , String opponentSign , boolean isPlayerTurn) {
+    public PlayPanel(XOClient client, String opponentName, String playerSign, String opponentSign, boolean isPlayerTurn) {
         this.client = client;
-        playerLabel = new JLabel("You: "+playerSign);
-        opponentLabel = new JLabel(opponentName+": "+opponentSign);
+        playerLabel = new JLabel("You: " + playerSign);
+        opponentLabel = new JLabel(opponentName + ": " + opponentSign);
         opponentLabel.setFont(font1);
         playerLabel.setFont(font1);
-        board = new GameBoard(playerSign);
+        board = new GameBoard(playerSign, isPlayerTurn);
         this.isPlayerTurn = isPlayerTurn;
 
         setupExitBtn();
@@ -29,7 +29,7 @@ public class PlayPanel extends GamePanel {
     }
 
     private void setupExitBtn() {
-        exitBtn=new JButton("exit");
+        exitBtn = new JButton("exit");
         exitBtn.setFont(font3);
 
         exitBtn.addActionListener(e -> {
@@ -40,7 +40,7 @@ public class PlayPanel extends GamePanel {
                     //todo loosing stuff
                     client.runMenu();
                 }
-            }else
+            } else
                 client.runMenu();
         });
     }
@@ -48,36 +48,56 @@ public class PlayPanel extends GamePanel {
     private void render() {
         setLayout(new GridBagLayout());
         GridBagConstraints gc = new GridBagConstraints();
-        gc.gridx=0;
-        gc.gridy=0;
+        gc.gridx = 0;
+        gc.gridy = 0;
         gc.gridheight = 5;
         gc.gridwidth = 4;
-        add(board,gc);
+        add(board, gc);
 
-        gc.gridx=4;
+        gc.gridx = 4;
         gc.gridheight = 1;
         gc.gridwidth = 2;
-        add(playerLabel,gc);
-        gc.gridy=1;
-        add(opponentLabel,gc);
-        gc.gridy=2;
-        gc.gridheight=2;
+        add(playerLabel, gc);
+        gc.gridy = 1;
+        add(opponentLabel, gc);
+        gc.gridy = 2;
+        gc.gridheight = 2;
         add(turnLabel, gc);
-        gc.gridy=4;
-        gc.gridheight=1;
-        add(exitBtn ,gc);
+        gc.gridy = 4;
+        gc.gridheight = 1;
+        add(exitBtn, gc);
     }
 
-    private void setTurn(){
+    private void setTurn() {
         board.setEnabled(isPlayerTurn);
-        if (isPlayerTurn){
+        if (isPlayerTurn) {
             turnLabel = new JLabel("YOUR TURN");
             turnLabel.setForeground(Color.GREEN);
-        }else {
+        } else {
             turnLabel = new JLabel("WAIT");
             turnLabel.setForeground(Color.RED);
         }
         turnLabel.setFont(font2);
+
+    }
+
+    public void setBoardListener(BoardListener boardListener) {
+        board.setBoardListener(boardListener);
+    }
+
+    public void playerWon(Integer[] winningTiles) {
+        turnLabel = new JLabel("YOU WON");
+        turnLabel.setForeground(Color.GREEN);
+        board.setEnabled(false);
+        board.setWinningTiles(true , winningTiles);
+    }
+
+    public void playerLost(Integer[] winningTiles) {
+        turnLabel = new JLabel("YOU LOST");
+        turnLabel.setForeground(Color.RED);
+        board.setEnabled(false);
+        board.setWinningTiles(false , winningTiles);
+
 
     }
 }

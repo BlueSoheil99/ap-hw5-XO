@@ -4,6 +4,10 @@ import gui.*;
 
 public class XOClient {
     private Account player;
+    private String playerSign,opponentSign;
+    private String opponentName;
+    private String[] board;
+
     private GameFrame frame;
     private MenuPanel menu;
 
@@ -58,9 +62,34 @@ public class XOClient {
 
     public void playMulti() {
         System.out.println("initializing multiPlayer");
-        stopMenu();
-        frame.initFrame(new PlayPanel(this,"test" , "X","O",true));
 
+        //todo get signs, first turn and opponent name from server
+        playerSign = "X";
+        opponentSign = "O";
+        opponentName = "test";
+        boolean isPlayerTurn = true;
+
+        stopMenu();
+        board = new String[49];
+        GameLogic gameLogic = new GameLogic(board, playerSign);
+        PlayPanel playPanel = new PlayPanel(this, opponentName, playerSign, opponentSign, isPlayerTurn);
+        playPanel.setBoardListener(new BoardListener() {
+            @Override
+            public void selectPlayer(int tileNumber) {
+                System.out.println(tileNumber + " selected");
+                board[tileNumber] = playerSign;
+                Integer[] winningTiles = gameLogic.checkForWin(true);
+                if (winningTiles != null) playPanel.playerWon(winningTiles);
+            }
+
+            @Override
+            public void selectOpponent(int tileNumber) {
+                Integer[] winningTiles = gameLogic.checkForWin(false);
+                if (winningTiles != null) playPanel.playerLost(winningTiles);
+            }
+        });
+        frame.initFrame(playPanel);
     }
+
 
 }

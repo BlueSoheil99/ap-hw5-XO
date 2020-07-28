@@ -7,11 +7,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 public class Tile extends JButton {
-    //    private int size = 45;
+    private int tileNumber;
     private boolean available = true;
     private Font tileFont = new Font("Helvetica", Font.BOLD, 45);
 
-    Tile() {
+    Tile(int tileNumber) {
+        this.tileNumber = tileNumber;
         drawTile();
 //        setPreferredSize(new Dimension(size, size));
 //        setMinimumSize(new Dimension(size, size));
@@ -40,6 +41,9 @@ public class Tile extends JButton {
 
     boolean isFilled() {
         return !available;
+    }
+    int getTileNumber(){
+        return tileNumber;
     }
 
     void setXO(String XorO, boolean isEnemy) {

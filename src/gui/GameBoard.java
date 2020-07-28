@@ -10,12 +10,14 @@ public class GameBoard extends GamePanel {
 
     private Tile[] tiles = new Tile[size * size];
     private BoardListener boardListener;
-    private String playerSign;
+    private String playerSign, opponentSign;
     private boolean yourTurn;
 
-    public GameBoard(String playerSign) { //todo make it package accessible
+    GameBoard(String playerSign, boolean playerTurn) {
         this.playerSign = playerSign;
-        yourTurn = true; //todo
+        if (playerSign.equals("X")) opponentSign = "O";
+        else opponentSign = "X";
+        yourTurn = playerTurn;
 
         setTiles();
         addTiles();
@@ -24,7 +26,7 @@ public class GameBoard extends GamePanel {
 
     private void setTiles() {
         for (int i = 0; i < size * size; i++) {
-            Tile tile = new Tile();
+            Tile tile = new Tile(i);
             tiles[i] = tile;
 
             tile.addActionListener(e -> {
@@ -32,7 +34,7 @@ public class GameBoard extends GamePanel {
                 if (!selectedTile.isFilled()) {
                     selectedTile.setXO(playerSign, !yourTurn);
                     //todo sync with enemy + check result in here or in boardListener
-                    //if ( boardListener != null ) boardListener.update();
+                    if (boardListener != null) boardListener.selectPlayer(tile.getTileNumber());
                     yourTurn = !yourTurn;
                     if (playerSign.equals("X")) playerSign = "O";
                     else playerSign = "X";
@@ -42,7 +44,6 @@ public class GameBoard extends GamePanel {
     }
 
     private void addTiles() {
-        //todo combine with setTiles method
         setLayout(new GridLayout(size, size, gapSize, gapSize));
         setBackground(Color.BLACK);
         for (int i = 0; i < size * size; i++) {
@@ -50,7 +51,21 @@ public class GameBoard extends GamePanel {
         }
     }
 
+    void setEnemyXO(int tileNumber) {
+        tiles[tileNumber].setXO(opponentSign, true);
+    }
+
+    void setWinningTiles(boolean playerWon, Integer[] winningTiles) {
+        for (int i = 0; i < 4; i++) {
+            tiles[winningTiles[i]].setToWinnerTile(playerWon);
+        }
+    }
+
     public void setEnabled(boolean enabled) {
-        //todo
+        for (Tile tile : tiles) tile.setEnabled(enabled);
+    }
+
+    void setBoardListener(BoardListener boardListener) {
+        this.boardListener = boardListener;
     }
 }

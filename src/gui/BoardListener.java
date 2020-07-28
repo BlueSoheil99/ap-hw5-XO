@@ -4,5 +4,6 @@ import java.util.EventListener;
 
 public interface BoardListener extends EventListener {
 
-    void update();
+    void selectPlayer(int tileNumber);
+    void selectOpponent(int tileNumber);
 }
