@@ -6,8 +6,9 @@ import logic.XOException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
+import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class XOSever {
@@ -17,7 +18,8 @@ public class XOSever {
     private DatagramSocket datagramSocket;
 
     private AccountController accountController;
-    private HashMap<Account,String> accounts;
+    private HashMap<Account, String> accounts;
+    private SecureRandom secureRandom;
 
     public static void main(String[] args) throws IOException {
         XOSever server = new XOSever();
@@ -31,6 +33,7 @@ public class XOSever {
         System.out.println("server is starting...");
         accountController = AccountController.getInstance();
         accounts = new HashMap<>();
+        secureRandom = new SecureRandom();
         updateServerPort();
         datagramSocket = new DatagramSocket(serverPort);
 //        DatagramSocket datagramSocket = new DatagramSocket(new InetSocketAddress(serverIP , defaultPort));
@@ -75,18 +78,23 @@ public class XOSever {
                 break;
             case "3":
                 System.out.println("player states request: " + message);
+                result = getAccountStates(message);
                 break;
             case "4":
                 System.out.println("board states request: " + message);
+                result = getBoardStates(message);
                 break;
             case "5":
                 System.out.println("play multi request: " + message);
+                result = requestPlay(message);
                 break;
             case "6":
                 System.out.println("select tile request: " + message);
+                result = selectTile(message);
                 break;
             case "7":
                 System.out.println("endGame request: " + message);
+                result = endGame(message);
                 break;
         }
         return result;
@@ -104,10 +112,10 @@ public class XOSever {
         datagramSocket.send(packet);
     }
 
-    //////////////////
-    //////////////////
-    //////////////////
 
+    //////////////////
+    //////////////////
+    //////////////////
     private String register(String message) {
         String[] info = message.split("-");
         try {
@@ -130,10 +138,47 @@ public class XOSever {
             return "2-1-" + error;
         }
     }
-    private String addNewClient(Account account){
-        String token = "tokenNotImplantedYet";
-        accounts.put(account,token);
+
+    private String addNewClient(Account account) {
+        int randomInt = secureRandom.nextInt(100000000);
+        String token = Integer.toString(randomInt);
+        accounts.put(account, token);
         return token;
     }
 
+    private String getAccountStates(String message) {
+        try {
+            String[] info = message.split("-");
+            Account account = getAccount(info[0], info[1]);
+            return "3-0-" + account.getWins() + "-" + account.getLosses() + "-" + account.getScore();
+        } catch (XOException e) {
+            return "3-1-" + e.getMessage();
+
+        }
+    }
+
+    private Account getAccount(String userName, String token) throws XOException {
+        for (Account account : accounts.keySet()) {
+            if (account.getName().equals(userName) && accounts.get(account).equals(token)) {
+                return account;
+            }
+        }
+        throw new XOException("account is offline");
+    }
+
+    private String getBoardStates(String message) {
+        return message;
+    }
+
+    private String requestPlay(String message) {
+        return message;
+    }
+
+    private String selectTile(String message) {
+        return message;
+    }
+
+    private String endGame(String message) {
+        return message;
+    }
 }

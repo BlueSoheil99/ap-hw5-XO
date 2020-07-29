@@ -22,7 +22,7 @@ public class XOClient {
     private Account player;
     private String[] stats = new String[4];
     private String userName;
-    private String token ;
+    private String token;
     private String playerSign, opponentSign;
     private String opponentName;
     private String[] board;
@@ -102,7 +102,7 @@ public class XOClient {
         try {
             String response = requestServerAndGetResponse(new String[]{"1", userName, password});
             System.out.println("register response: " + response);
-            switch (response.substring(0,1)){
+            switch (response.substring(0, 1)) {
                 case "0":
                     break;
                 case "1":
@@ -113,13 +113,13 @@ public class XOClient {
         }
     }
 
-    public void login (String userName, String password) throws XOException {
+    public void login(String userName, String password) throws XOException {
         System.out.print("client logging in  ");
         try {
             String response = requestServerAndGetResponse(new String[]{"2", userName, password});
             System.out.println("login response: " + response);
 
-            switch (response.substring(0,1)){
+            switch (response.substring(0, 1)) {
                 case "0":
                     String[] info = response.substring(2).split("-");
                     this.userName = info[0];
@@ -147,7 +147,23 @@ public class XOClient {
 
     public String[] getStates() {
         String[] stats = new String[]{userName, "0", "0", "0"};
-        //todo requestServerAndGetResponse({3,token})
+        System.out.print("requesting for account states:  ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"3", userName, token});
+            System.out.println("stateRequest response: " + response);
+            switch (response.substring(0, 1)) {
+                case "0":
+                    String[] info = response.substring(2).split("-");
+                    stats[1] = info[0];
+                    stats[2] = info[1];
+                    stats[3] = info[2];
+                    break;
+                case "1":
+                    break;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return stats;
     }
 
