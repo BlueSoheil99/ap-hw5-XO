@@ -55,22 +55,24 @@ public class XOSever {
         }
     }
 
-    private String handleCommand(DatagramPacket packet)  {
+    private String handleCommand(DatagramPacket packet) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
         Scanner scanner = new Scanner(byteArrayInputStream);
         String message = scanner.nextLine();
+        message=message.replaceAll("\u0000","");
 
         String result = "";
         String operationCode = message.substring(0, 1);
         message = message.substring(2);
+
         switch (operationCode) {
             case "1":
                 System.out.println("register request: " + message);
-                result=register(message);
+                result = register(message);
                 break;
             case "2":
                 System.out.println("login request: " + message);
-                result=login(message);
+                result = login(message);
                 break;
             case "3":
                 System.out.println("player states request: " + message);
@@ -109,13 +111,25 @@ public class XOSever {
     //////////////////
 
     private String register(String message) {
-//        accountController.register(username, pass);
-        return "1|"+message;
+        String[] info = message.split("-");
+        try {
+            accountController.register(info[0], info[1]);
+            return "1-0-" + message;
+        } catch (XOException e) {
+            String error = e.getMessage();
+            return "1-1-" + error;
+        }
     }
 
-    private String login(String message)  {
-//        accounts.add(accountController.login(username, pass));
-        return "2|"+message;
+    private String login(String message) {
+        String[] info = message.split("-");
+        try {
+            accountController.login(info[0], info[1]);
+            return "2-0-" + message;
+        } catch (XOException e) {
+            String error = e.getMessage();
+            return "2-1-" + error;
+        }
     }
 
 

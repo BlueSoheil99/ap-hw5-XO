@@ -175,7 +175,7 @@ public class LoginAndRegisterPanel extends GamePanel {
 
     private void tryToLogin(String userName, String pass) {
         try{
-            client.login(userName , pass);
+            client.tryToLogin(userName , pass);
         }catch (XOException e){
             message.setText(e.getMessage());
         }
@@ -188,7 +188,7 @@ public class LoginAndRegisterPanel extends GamePanel {
                 message.setForeground(Color.RED);
             } else {
                 try {
-                    client.register(username , pass1);
+                    client.tryToRegister(username , pass1);
                     clearFields();
                     message.setText("Your Account has been made successfully");
                     message.setForeground(Color.GREEN);

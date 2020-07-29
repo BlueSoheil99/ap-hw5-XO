@@ -67,7 +67,7 @@ public class XOClient {
     private void writePacket(String[] standardMessage) {
         String message = standardMessage[0];
         for (int i = 1; i < standardMessage.length; i++) {
-            message = message + "|" + standardMessage[i];
+            message = message + "-" + standardMessage[i];
         }
         System.out.println(message.substring(2));
 
@@ -87,28 +87,29 @@ public class XOClient {
     }
 
     private void handleResponse(String response) {
-        String responseCode = response.substring(0,1);
+        String responseCode = response.substring(0, 1);
+        response = response.substring(2);
         switch (responseCode) {
             case "1":
-                System.out.println("register response: " + response.substring(2));
+                register(response);
                 break;
             case "2":
-                System.out.println("login response: " + response.substring(2));
+                System.out.println("login response: " + response);
                 break;
             case "3":
-                System.out.println("player states response: " + response.substring(2));
+                System.out.println("player states response: " + response);
                 break;
             case "4":
-                System.out.println("board states response: " + response.substring(2));
+                System.out.println("board states response: " + response);
                 break;
             case "5":
-                System.out.println("play multi response: " + response.substring(2));
+                System.out.println("play multi response: " + response);
                 break;
             case "6":
-                System.out.println("select tile response: " + response.substring(2));
+                System.out.println("select tile response: " + response);
                 break;
             case "7":
-                System.out.println("endGame response: " + response.substring(2));
+                System.out.println("endGame response: " + response);
                 break;
         }
     }
@@ -117,16 +118,23 @@ public class XOClient {
     //////////////////////
     //////////////////////
 
-    public void register(String userName, String password) throws XOException {
+    public void tryToRegister(String userName, String password) throws XOException {
         System.out.print("client registering... ");
         writePacket(new String[]{"1", userName, password});
+//        register();
     }
 
-    public void login(String userName, String password) throws XOException {
+    private void register(String response) {
+        System.out.println("register response: " + response);
+
+    }
+
+    public void tryToLogin(String userName, String password) throws XOException {
         System.out.print("client logging in... ");
         writePacket(new String[]{"2", userName, password});
         runMenu();
     }
+
 
     public void runMenu() {
         System.out.println("menu ran");

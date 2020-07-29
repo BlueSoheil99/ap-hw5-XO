@@ -36,4 +36,8 @@ public class ResourceManager {
         else ans = null;
         return ans;
     }
+
+    public String getProfilesPath() {
+        return properties.getProperty("profilesPath");
+    }
 }
