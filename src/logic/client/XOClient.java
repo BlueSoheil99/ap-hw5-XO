@@ -5,9 +5,22 @@ import logic.BoardListener;
 import logic.XOException;
 import logic.server.Account;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.*;
+import java.util.Scanner;
+
 public class XOClient {
+    private String serverIP = "localhost";
+    private int serverPort = 8000;
+    private int clientPort = 8001; //todo is it necessary?
+    private int maxLength = 1000;
+    private SocketAddress serverAddress;
+    private DatagramSocket datagramSocket;
+    private Scanner scanner;
+
     private Account player;
-    private String playerSign,opponentSign;
+    private String playerSign, opponentSign;
     private String opponentName;
     private String[] board;
 
@@ -15,15 +28,54 @@ public class XOClient {
     private MenuPanel menu;
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         XOClient client = new XOClient();
+        client.run();
     }
 
-    public XOClient() {
+    private XOClient() throws IOException {
         frame = new GameFrame();
         frame.initFrame(new LoginAndRegisterPanel(this));
-        //todo connect
+        //todo read config for server port
+        serverAddress = new InetSocketAddress(serverIP, serverPort);
+        datagramSocket = new DatagramSocket(clientPort);
+        scanner = new Scanner(System.in); //todo system in is kazaie
     }
+
+    private void run() throws IOException {
+        while (true) {
+            String message = scanner.nextLine();
+            writePacket(datagramSocket, message, serverAddress);
+            System.out.println("Client Sent: " + message);
+
+            DatagramPacket packet = readPacket(datagramSocket);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
+            Scanner socketScanner = new Scanner(byteArrayInputStream);
+            String response = socketScanner.nextLine();
+
+            System.out.println("Client Received: " + response);
+
+            if (message.equals("exit")) {
+                break;
+            }
+        }
+    }
+
+    private void writePacket(DatagramSocket datagramSocket, String message, SocketAddress socketAddress) throws IOException {
+        byte[] data = message.getBytes();
+        DatagramPacket packet = new DatagramPacket(data, data.length, socketAddress);
+        datagramSocket.send(packet);
+    }
+
+    private DatagramPacket readPacket(DatagramSocket datagramSocket) throws IOException {
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[maxLength], maxLength);
+        datagramSocket.receive(datagramPacket);
+        return datagramPacket;
+    }
+
+    //////////////////////
+    //////////////////////
+    //////////////////////
 
     public void register(String userName, String password) throws XOException {
         //todo
@@ -85,7 +137,7 @@ public class XOClient {
                 playPanel.changeTurn();
                 Integer[] winningTiles = gameLogic.checkForWin(true);
                 if (winningTiles != null) playPanel.playerWon(winningTiles);
-                else if (gameLogic.checkForTie())playPanel.tie();
+                else if (gameLogic.checkForTie()) playPanel.tie();
             }
 
             @Override
@@ -95,7 +147,7 @@ public class XOClient {
                 playPanel.changeTurn();
                 Integer[] winningTiles = gameLogic.checkForWin(false);
                 if (winningTiles != null) playPanel.playerLost(winningTiles);
-                else if (gameLogic.checkForTie())playPanel.tie();
+                else if (gameLogic.checkForTie()) playPanel.tie();
 
             }
         });

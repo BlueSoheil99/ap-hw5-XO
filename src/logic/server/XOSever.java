@@ -2,35 +2,80 @@ package logic.server;
 
 import logic.XOException;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class XOSever {
+    private String serverIP = "localhost";
+    private int defaultPort = 8000;
+    private int maxLength = 1000;
+    private DatagramSocket datagramSocket;
+
     private AccountController accountController;
     private ArrayList<Account> accounts;
-    private static String serverIP = "localhost";
-    private static int defaultPort = 8000;
 
-    XOSever(){
+    public static void main(String[] args) throws IOException {
+        XOSever server = new XOSever();
+        server.run();
+    }
+
+    /////////////
+    /////////////
+    /////////////
+
+    private XOSever() throws IOException {
         accountController = AccountController.getInstance();
         accounts = new ArrayList<>();
+        //todo read config
+        datagramSocket = new DatagramSocket(defaultPort);
+//        DatagramSocket datagramSocket = new DatagramSocket(new InetSocketAddress(serverIP , defaultPort));
+        System.out.println("server is running...");
+    }
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void run() throws IOException {
+        while (true) {
+            DatagramPacket packet = readPacket();
+
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
+            Scanner scanner = new Scanner(byteArrayInputStream);
+            String message = scanner.nextLine();
+            System.out.println("Server Received: " + message);
+
+            String result = message.toUpperCase();
+            writePacket( result, packet.getSocketAddress());
+            System.out.println("Server Sent: " + result);
+
+            if (message.equals("exit")) {
+                break;
+            }
         }
-
     }
 
-    void register(String username , String pass) throws XOException {
-        accountController.register(username , pass);
-    }
-    void login(String username , String pass) throws XOException {
-        accounts.add(accountController.login(username , pass));
+    private DatagramPacket readPacket() throws IOException {
+        DatagramPacket datagramPacket = new DatagramPacket(new byte[maxLength], maxLength);
+        datagramSocket.receive(datagramPacket);
+        return datagramPacket;
     }
 
-    public static void main(String[] args)  {
-        XOSever sever = new XOSever();
+    private void writePacket(String message, SocketAddress socketAddress) throws IOException {
+        byte[] data = message.getBytes();
+        DatagramPacket packet = new DatagramPacket(data, data.length, socketAddress);
+        datagramSocket.send(packet);
+    }
+
+    //////////////////
+    //////////////////
+    //////////////////
+
+    private void register(String username, String pass) throws XOException {
+        accountController.register(username, pass);
+    }
+
+    private void login(String username, String pass) throws XOException {
+        accounts.add(accountController.login(username, pass));
     }
 
 

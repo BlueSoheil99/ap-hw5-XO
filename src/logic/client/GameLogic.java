@@ -1,6 +1,8 @@
 package logic.client;
 
 public class GameLogic {
+    // this class has some duplicated codes and i thought it is cleaner than a code without duplicates
+
     private String[] tiles;
     private String[][] tilesMatrix;
     private String playerSign;
@@ -30,6 +32,7 @@ public class GameLogic {
     ///////////////
     ///////////////
 
+    // check out matchTie.png to verify the functionality of this method
     public boolean checkForTie() {
         System.out.println("checked for tie");
         setupTilesMatrix();
