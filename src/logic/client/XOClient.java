@@ -2,6 +2,7 @@ package logic.client;
 
 import gui.*;
 import logic.BoardListener;
+import logic.ResourceManager;
 import logic.XOException;
 import logic.server.Account;
 
@@ -34,12 +35,23 @@ public class XOClient {
     }
 
     private XOClient() throws IOException {
+        System.out.println("client is starting...");
         frame = new GameFrame();
         frame.initFrame(new LoginAndRegisterPanel(this));
-        //todo read config for server port
+        updateServerPort();
         serverAddress = new InetSocketAddress(serverIP, serverPort);
         datagramSocket = new DatagramSocket(clientPort);
         scanner = new Scanner(System.in); //todo system in is kazaie
+        System.out.println("client is started\n------------");
+    }
+
+    private void updateServerPort() {
+        System.out.println("checking client port configuration...");
+        Integer port = ResourceManager.getInstance().getServerPort();
+        if (port != null && port != serverPort) {
+            serverPort = port;
+            System.out.println("serverPort: " + serverPort);
+        } else System.out.println("serverPort: default - " + serverPort);
     }
 
     private void run() throws IOException {

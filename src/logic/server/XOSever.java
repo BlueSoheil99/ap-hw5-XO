@@ -1,5 +1,6 @@
 package logic.server;
 
+import logic.ResourceManager;
 import logic.XOException;
 
 import java.io.ByteArrayInputStream;
@@ -10,7 +11,7 @@ import java.util.Scanner;
 
 public class XOSever {
     private String serverIP = "localhost";
-    private int defaultPort = 8000;
+    private int serverPort = 8000;
     private int maxLength = 1000;
     private DatagramSocket datagramSocket;
 
@@ -27,12 +28,22 @@ public class XOSever {
     /////////////
 
     private XOSever() throws IOException {
+        System.out.println("server is starting...");
         accountController = AccountController.getInstance();
         accounts = new ArrayList<>();
-        //todo read config
-        datagramSocket = new DatagramSocket(defaultPort);
+        updateServerPort();
+        datagramSocket = new DatagramSocket(serverPort);
 //        DatagramSocket datagramSocket = new DatagramSocket(new InetSocketAddress(serverIP , defaultPort));
-        System.out.println("server is running...");
+        System.out.println("server is running\n------------");
+    }
+
+    private void updateServerPort() {
+        System.out.println("checking server port configuration...");
+        Integer port = ResourceManager.getInstance().getServerPort();
+        if (port != null && port!= serverPort)  {
+            serverPort = port;
+            System.out.println("port: "+serverPort);
+        }else System.out.println("port: default - "+serverPort);
     }
 
     private void run() throws IOException {
