@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class XOSever {
@@ -16,7 +17,7 @@ public class XOSever {
     private DatagramSocket datagramSocket;
 
     private AccountController accountController;
-    private ArrayList<Account> accounts;
+    private HashMap<Account,String> accounts;
 
     public static void main(String[] args) throws IOException {
         XOSever server = new XOSever();
@@ -25,16 +26,15 @@ public class XOSever {
 
     /////////////
     /////////////
-    /////////////
 
     private XOSever() throws IOException {
         System.out.println("server is starting...");
         accountController = AccountController.getInstance();
-        accounts = new ArrayList<>();
+        accounts = new HashMap<>();
         updateServerPort();
         datagramSocket = new DatagramSocket(serverPort);
 //        DatagramSocket datagramSocket = new DatagramSocket(new InetSocketAddress(serverIP , defaultPort));
-        System.out.println("server is running\n------------");
+        System.out.println("server is running\n------------\n");
     }
 
     private void updateServerPort() {
@@ -51,7 +51,7 @@ public class XOSever {
             DatagramPacket packet = readPacket();
             String result = handleCommand(packet);
             writePacket(result, packet.getSocketAddress()); //todo send to all
-            System.out.println("Server responded: " + result);
+            System.out.println("Server responded: " + result + "\n + + + + +");
         }
     }
 
@@ -59,8 +59,7 @@ public class XOSever {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
         Scanner scanner = new Scanner(byteArrayInputStream);
         String message = scanner.nextLine();
-        message=message.replaceAll("\u0000","");
-
+        message = message.replaceAll("\u0000", "");
         String result = "";
         String operationCode = message.substring(0, 1);
         message = message.substring(2);
@@ -90,7 +89,6 @@ public class XOSever {
                 System.out.println("endGame request: " + message);
                 break;
         }
-
         return result;
     }
 
@@ -114,7 +112,7 @@ public class XOSever {
         String[] info = message.split("-");
         try {
             accountController.register(info[0], info[1]);
-            return "1-0-" + message;
+            return "1-0-";
         } catch (XOException e) {
             String error = e.getMessage();
             return "1-1-" + error;
@@ -124,13 +122,18 @@ public class XOSever {
     private String login(String message) {
         String[] info = message.split("-");
         try {
-            accountController.login(info[0], info[1]);
-            return "2-0-" + message;
+            Account client = accountController.login(info[0], info[1]);
+            String token = addNewClient(client);
+            return "2-0-" + info[0] + "-" + token;
         } catch (XOException e) {
             String error = e.getMessage();
             return "2-1-" + error;
         }
     }
-
+    private String addNewClient(Account account){
+        String token = "tokenNotImplantedYet";
+        accounts.put(account,token);
+        return token;
+    }
 
 }

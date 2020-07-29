@@ -20,6 +20,9 @@ public class XOClient {
     private DatagramSocket datagramSocket;
 
     private Account player;
+    private String[] stats = new String[4];
+    private String userName;
+    private String token ;
     private String playerSign, opponentSign;
     private String opponentName;
     private String[] board;
@@ -30,7 +33,6 @@ public class XOClient {
 
     public static void main(String[] args) throws IOException {
         XOClient client = new XOClient();
-        client.run();
     }
 
     private XOClient() throws IOException {
@@ -41,7 +43,7 @@ public class XOClient {
 
         frame = new GameFrame();
         frame.initFrame(new LoginAndRegisterPanel(this));
-        System.out.println("client is started\n------------");
+        System.out.println("client is started\n------------\n");
     }
 
     private void updateServerPort() {
@@ -53,18 +55,7 @@ public class XOClient {
         } else System.out.println("serverPort: default - " + serverPort);
     }
 
-    private void run() throws IOException {
-        while (true) {
-            //lines below execute after writePacket method is called
-            DatagramPacket packet = readPacket();
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
-            Scanner socketScanner = new Scanner(byteArrayInputStream);
-            String response = socketScanner.nextLine();
-            handleResponse(response);
-        }
-    }
-
-    private void writePacket(String[] standardMessage) {
+    private String requestServerAndGetResponse(String[] standardMessage) throws IOException {
         String message = standardMessage[0];
         for (int i = 1; i < standardMessage.length; i++) {
             message = message + "-" + standardMessage[i];
@@ -72,12 +63,22 @@ public class XOClient {
         System.out.println(message.substring(2));
 
         byte[] data = message.getBytes();
+        String response = "";
         DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress);
-        try { // todo or throw in method signature
-            datagramSocket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        datagramSocket.send(packet);
+        response = receiveTheResponse();
+        return response;
+    }
+
+    private String receiveTheResponse() throws IOException {
+        DatagramPacket packet = readPacket();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
+        Scanner socketScanner = new Scanner(byteArrayInputStream);
+        String response = socketScanner.nextLine();
+        response = response.replaceAll("\u0000", "");
+
+        return handleResponse(response);
     }
 
     private DatagramPacket readPacket() throws IOException {
@@ -86,55 +87,52 @@ public class XOClient {
         return datagramPacket;
     }
 
-    private void handleResponse(String response) {
-        String responseCode = response.substring(0, 1);
+    private String handleResponse(String response) {
+//        String responseCode = response.substring(0, 1);
         response = response.substring(2);
-        switch (responseCode) {
-            case "1":
-                register(response);
-                break;
-            case "2":
-                System.out.println("login response: " + response);
-                break;
-            case "3":
-                System.out.println("player states response: " + response);
-                break;
-            case "4":
-                System.out.println("board states response: " + response);
-                break;
-            case "5":
-                System.out.println("play multi response: " + response);
-                break;
-            case "6":
-                System.out.println("select tile response: " + response);
-                break;
-            case "7":
-                System.out.println("endGame response: " + response);
-                break;
+        return response;
+    }//todo delete this method
+
+    //////////////////////
+    //////////////////////
+    //////////////////////
+
+    public void register(String userName, String password) throws XOException {
+        System.out.print("client registering  ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"1", userName, password});
+            System.out.println("register response: " + response);
+            switch (response.substring(0,1)){
+                case "0":
+                    break;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    //////////////////////
-    //////////////////////
-    //////////////////////
+    public void login (String userName, String password) throws XOException {
+        System.out.print("client logging in  ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"2", userName, password});
+            System.out.println("login response: " + response);
 
-    public void tryToRegister(String userName, String password) throws XOException {
-        System.out.print("client registering... ");
-        writePacket(new String[]{"1", userName, password});
-//        register();
+            switch (response.substring(0,1)){
+                case "0":
+                    String[] info = response.substring(2).split("-");
+                    this.userName = info[0];
+                    token = info[1];
+                    runMenu();
+                    break;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
-    private void register(String response) {
-        System.out.println("register response: " + response);
-
-    }
-
-    public void tryToLogin(String userName, String password) throws XOException {
-        System.out.print("client logging in... ");
-        writePacket(new String[]{"2", userName, password});
-        runMenu();
-    }
-
 
     public void runMenu() {
         System.out.println("menu ran");
@@ -148,18 +146,13 @@ public class XOClient {
     }
 
     public String[] getStates() {
-        String[] stats = new String[]{"Guest", "0", "0", "0"};
-        if (player != null) {
-            stats[0] = player.getName();
-            stats[1] = Integer.toString(player.getWins());
-            stats[2] = Integer.toString(player.getLosses());
-            stats[3] = Integer.toString(player.getScore());
-        }
+        String[] stats = new String[]{userName, "0", "0", "0"};
+        //todo requestServerAndGetResponse({3,token})
         return stats;
     }
 
     public String[][] getBoardUpdates() {
-        //todo
+        //todo requestServerAndGetResponse({4,token})
         return new String[100][3];
     }
 
