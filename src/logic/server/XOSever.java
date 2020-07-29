@@ -40,29 +40,56 @@ public class XOSever {
     private void updateServerPort() {
         System.out.println("checking server port configuration...");
         Integer port = ResourceManager.getInstance().getServerPort();
-        if (port != null && port!= serverPort)  {
+        if (port != null && port != serverPort) {
             serverPort = port;
-            System.out.println("port: "+serverPort);
-        }else System.out.println("port: default - "+serverPort);
+            System.out.println("port: " + serverPort);
+        } else System.out.println("port: default - " + serverPort);
     }
 
     private void run() throws IOException {
         while (true) {
             DatagramPacket packet = readPacket();
-
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
-            Scanner scanner = new Scanner(byteArrayInputStream);
-            String message = scanner.nextLine();
-            System.out.println("Server Received: " + message);
-
-            String result = message.toUpperCase();
-            writePacket( result, packet.getSocketAddress());
-            System.out.println("Server Sent: " + result);
-
-            if (message.equals("exit")) {
-                break;
-            }
+            String result = handleCommand(packet);
+            writePacket(result, packet.getSocketAddress()); //todo send to all
+            System.out.println("Server responded: " + result);
         }
+    }
+
+    private String handleCommand(DatagramPacket packet)  {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(packet.getData());
+        Scanner scanner = new Scanner(byteArrayInputStream);
+        String message = scanner.nextLine();
+
+        String result = "";
+        String operationCode = message.substring(0, 1);
+        message = message.substring(2);
+        switch (operationCode) {
+            case "1":
+                System.out.println("register request: " + message);
+                result=register(message);
+                break;
+            case "2":
+                System.out.println("login request: " + message);
+                result=login(message);
+                break;
+            case "3":
+                System.out.println("player states request: " + message);
+                break;
+            case "4":
+                System.out.println("board states request: " + message);
+                break;
+            case "5":
+                System.out.println("play multi request: " + message);
+                break;
+            case "6":
+                System.out.println("select tile request: " + message);
+                break;
+            case "7":
+                System.out.println("endGame request: " + message);
+                break;
+        }
+
+        return result;
     }
 
     private DatagramPacket readPacket() throws IOException {
@@ -81,12 +108,14 @@ public class XOSever {
     //////////////////
     //////////////////
 
-    private void register(String username, String pass) throws XOException {
-        accountController.register(username, pass);
+    private String register(String message) {
+//        accountController.register(username, pass);
+        return "1|"+message;
     }
 
-    private void login(String username, String pass) throws XOException {
-        accounts.add(accountController.login(username, pass));
+    private String login(String message)  {
+//        accounts.add(accountController.login(username, pass));
+        return "2|"+message;
     }
 
 
