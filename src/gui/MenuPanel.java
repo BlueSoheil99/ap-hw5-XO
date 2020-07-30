@@ -82,8 +82,6 @@ public class MenuPanel extends GamePanel implements Runnable {
     }
 
     public void updateScoreBoard() {
-        //todo check this part later
-//        scoreBoard = new ScoreBoard(client.getBoardUpdates());
         scoreBoard.update(client.getBoardUpdates());
     }
 }

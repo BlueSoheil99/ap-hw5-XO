@@ -72,7 +72,7 @@ public class PlayPanel extends GamePanel {
     }
 
     private void setTurn() {
-//        board.setEnabled(isPlayerTurn); todo enabling board has conflicts with gameBoard itself. check it later
+//        board.setEnabled(isPlayerTurn); todo uncomment it later and also enabling board has conflicts with gameBoard itself. check it later
         if (isPlayerTurn) {
             turnLabel.setText(" YOUR TURN ");
             turnLabel.setForeground(Color.GREEN);
@@ -114,10 +114,13 @@ public class PlayPanel extends GamePanel {
     }
 
     private void endGame(Boolean playerWon) {
+        disablePanel(playerWon);
+        client.endMatch(hasPlayerWon);
+    }
+    public void disablePanel(Boolean playerWon){
         matchFinished = true;
         board.setEnabled(false);
         hasPlayerWon=playerWon;
-        client.endMatch(hasPlayerWon);
     }
 
 }

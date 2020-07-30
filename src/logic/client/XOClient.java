@@ -30,6 +30,7 @@ public class XOClient {
 
     private GameFrame frame;
     private MenuPanel menu;
+    private PlayPanel playPanel;
 
 
     public static void main(String[] args) throws IOException {
@@ -150,6 +151,7 @@ public class XOClient {
 
     public void endMatch(Boolean hasPlayerWon) {
         String endCode;
+
         if (hasPlayerWon == null) endCode = "2";
         else if (hasPlayerWon) endCode = "0";
         else endCode = "1";
@@ -267,6 +269,10 @@ public class XOClient {
                                 //when a tile gets selected
                                 if (!info[0].equals(userName)) boardListener.selectOpponent(Integer.parseInt(info[1]));
                                 break;
+                            case "7": //todo maybe it's not necessary.check it later
+                                if (info[0].equals(userName)) playPanel.disablePanel(true);
+                                else endMatch(false);
+                                break;
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -296,7 +302,7 @@ public class XOClient {
         stopMenu();
         board = new String[49];
         GameLogic gameLogic = new GameLogic(board, playerSign);
-        PlayPanel playPanel = new PlayPanel(this, opponentName, playerSign, opponentSign, isPlayerTurn);
+        playPanel = new PlayPanel(this, opponentName, playerSign, opponentSign, isPlayerTurn);
         boardListener = new BoardListener() {
             @Override
             public void selectPlayer(int tileNumber) {
