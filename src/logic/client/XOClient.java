@@ -14,13 +14,11 @@ import java.util.Scanner;
 public class XOClient {
     private String serverIP = "localhost";
     private int serverPort = 8000;
-    private int clientPort = 9000; //todo is it necessary?
+    //    private int clientPort = 9000;
     private int maxLength = 1000;
     private SocketAddress serverAddress;
     private DatagramSocket datagramSocket;
 
-    private Account player;
-    private String[] stats = new String[4];
     private String userName;
     private String token;
     private String playerSign, opponentSign;
@@ -39,7 +37,8 @@ public class XOClient {
         System.out.println("client is starting...");
         updateServerPort();
         serverAddress = new InetSocketAddress(serverIP, serverPort);
-        datagramSocket = new DatagramSocket(clientPort);
+//        datagramSocket = new DatagramSocket(clientPort);
+        datagramSocket = new DatagramSocket();
 
         frame = new GameFrame();
         frame.initFrame(new LoginAndRegisterPanel(this));
@@ -134,14 +133,34 @@ public class XOClient {
         }
     }
 
+    public void quitGame() {
+        System.out.print("quiting the game   ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"8", userName, token});
+            System.out.println("quit response: " + response);
+
+            switch (response.substring(0, 1)) {
+                case "0":
+                    stopMenu();
+                    System.exit(0);
+                    break;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException | XOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void runMenu() {
-        System.out.println("menu ran");
+        System.out.println("menu running");
         menu = new MenuPanel(this);
         frame.initFrame(menu);
     }
 
     private void stopMenu() {
         menu.stopUpdating();
+        System.out.println("menu stopped running");
         menu = null;
     }
 
@@ -168,7 +187,24 @@ public class XOClient {
     }
 
     public String[][] getBoardUpdates() {
-        //todo requestServerAndGetResponse({4,token})
+        System.out.print("requesting for board states:  ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"4", userName, token});
+            System.out.println("boardRequest response: " + response);
+            switch (response.substring(0, 1)) {
+                case "0":
+                    String[] info = response.substring(2).split("-");
+                    String[][] stats = new String[info.length][3];
+                    for (int i = 0; i < info.length; i++) {
+                        stats[i] = info[i].split(",");
+                    }
+                    return stats;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException | XOException e) {
+            e.printStackTrace();
+        }
         return new String[100][3];
     }
 

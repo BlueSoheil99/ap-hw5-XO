@@ -8,13 +8,14 @@ public class GameFrame extends JFrame {
         setTitle("XO");
         setResizable(false);
         setVisible(true);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     public void initFrame(JPanel panel) {
         setContentPane(panel);
         setPreferredSize(panel.getSize());
-//        setMinimumSize(panel.getSize()); // without it frame gets smaller and smaller
+        if (panel.getClass()==LoginAndRegisterPanel.class) setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        else setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
         pack();
         revalidate();
         setLocationRelativeTo(null);

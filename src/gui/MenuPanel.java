@@ -12,9 +12,7 @@ public class MenuPanel extends GamePanel implements Runnable {
     private boolean updateEnabled;
     private ScoreBoard scoreBoard;
     private JLabel title, welcomeMsg, statsLabel;
-    private JButton multiBtn;
-    // todo check if there is a need for having a quit btn
-
+    private JButton multiBtn , quitBtn;
 
     public MenuPanel(XOClient client) {
         this.client = client;
@@ -44,16 +42,19 @@ public class MenuPanel extends GamePanel implements Runnable {
     private void createFields() {
         statsLabel = new JLabel();
         updateStates();
-        updateScoreBoard();
+        scoreBoard = new ScoreBoard(client.getBoardUpdates());
         title = new JLabel("XO");
         welcomeMsg = new JLabel("Hi " + stats[0] + " :)  welcome to ");
         multiBtn = new JButton("MultiPlayer Game");
+        quitBtn = new JButton("      Quit Game      ");
         title.setFont(titleFont);
         welcomeMsg.setFont(font3);
         statsLabel.setFont(font2);
         multiBtn.setFont(font1);
+        quitBtn.setFont(font1);
 
         multiBtn.addActionListener(e -> client.playMulti());
+        quitBtn.addActionListener(e -> client.quitGame());
     }
 
     private void render() {
@@ -67,9 +68,10 @@ public class MenuPanel extends GamePanel implements Runnable {
         add(title, gc);
         add(statsLabel, gc);
         add(multiBtn, gc);
+        add(quitBtn, gc);
         gc.gridy = 0;
         gc.gridx = 1;
-        gc.gridheight = 4;
+        gc.gridheight = 5;
         add(new JScrollPane(scoreBoard), gc);
     }
 
@@ -81,7 +83,7 @@ public class MenuPanel extends GamePanel implements Runnable {
 
     public void updateScoreBoard() {
         //todo check this part later
-        scoreBoard = new ScoreBoard(client.getBoardUpdates());
+//        scoreBoard = new ScoreBoard(client.getBoardUpdates());
         scoreBoard.update(client.getBoardUpdates());
     }
 }

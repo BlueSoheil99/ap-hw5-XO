@@ -7,8 +7,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.*;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class XOSever {
@@ -18,7 +18,7 @@ public class XOSever {
     private DatagramSocket datagramSocket;
 
     private AccountController accountController;
-    private HashMap<Account, String> accounts;
+    private HashMap<Account, String> onlineAccounts;
     private SecureRandom secureRandom;
 
     public static void main(String[] args) throws IOException {
@@ -32,7 +32,7 @@ public class XOSever {
     private XOSever() throws IOException {
         System.out.println("server is starting...");
         accountController = AccountController.getInstance();
-        accounts = new HashMap<>();
+        onlineAccounts = new HashMap<>();
         secureRandom = new SecureRandom();
         updateServerPort();
         datagramSocket = new DatagramSocket(serverPort);
@@ -96,6 +96,10 @@ public class XOSever {
                 System.out.println("endGame request: " + message);
                 result = endGame(message);
                 break;
+            case "8":
+                System.out.println("quitGame request: " + message);
+                result = quitGame(message);
+                break;
         }
         return result;
     }
@@ -112,10 +116,9 @@ public class XOSever {
         datagramSocket.send(packet);
     }
 
+    //////////////////
+    //////////////////
 
-    //////////////////
-    //////////////////
-    //////////////////
     private String register(String message) {
         String[] info = message.split("-");
         try {
@@ -131,19 +134,13 @@ public class XOSever {
         String[] info = message.split("-");
         try {
             Account client = accountController.login(info[0], info[1]);
+            if (accountIsOnline(info[0])) throw new XOException("this user is already online");
             String token = addNewClient(client);
             return "2-0-" + info[0] + "-" + token;
         } catch (XOException e) {
             String error = e.getMessage();
             return "2-1-" + error;
         }
-    }
-
-    private String addNewClient(Account account) {
-        int randomInt = secureRandom.nextInt(100000000);
-        String token = Integer.toString(randomInt);
-        accounts.put(account, token);
-        return token;
     }
 
     private String getAccountStates(String message) {
@@ -153,21 +150,27 @@ public class XOSever {
             return "3-0-" + account.getWins() + "-" + account.getLosses() + "-" + account.getScore();
         } catch (XOException e) {
             return "3-1-" + e.getMessage();
-
         }
-    }
-
-    private Account getAccount(String userName, String token) throws XOException {
-        for (Account account : accounts.keySet()) {
-            if (account.getName().equals(userName) && accounts.get(account).equals(token)) {
-                return account;
-            }
-        }
-        throw new XOException("account is offline");
     }
 
     private String getBoardStates(String message) {
-        return message;
+        try {
+            String[] info = message.split("-");
+            getAccount(info[0], info[1]);
+            ArrayList<Account> allAccounts = accountController.getSortedAccounts();
+            String[][] stats = new String[allAccounts.size()][3];
+            Account account;
+            for (int i = 0; i < allAccounts.size(); i++) {
+                String status;
+                account = allAccounts.get(i);
+                if (accountIsOnline(account.getName())) status = "ON";
+                else status = "OFF";
+                stats[i] = new String[]{account.getName(), status, Integer.toString(account.getScore())};
+            }
+            return "4-0-" + getString(stats);
+        } catch (XOException e) {
+            return "4-1-" + e.getMessage();
+        }
     }
 
     private String requestPlay(String message) {
@@ -181,4 +184,80 @@ public class XOSever {
     private String endGame(String message) {
         return message;
     }
+
+    private String quitGame(String message) {
+        String[] info = message.split("-");
+        if (accountIsOnline(info[0], info[1])) {
+            for (Account account : onlineAccounts.keySet()) {
+                if (account.getName().equals(info[0])) {
+                    onlineAccounts.remove(account);
+                    break;
+                }
+            }
+            return "8-0-";
+        }
+        return "8-1-" + "failed to quit";
+    }
+
+    ////////////////////
+    ////////////////////
+
+    private String addNewClient(Account account) {
+        int randomInt = secureRandom.nextInt(100000000);
+        String token = Integer.toString(randomInt);
+        onlineAccounts.put(account, token);
+        return token;
+    }
+
+    private Account getAccount(String userName, String token) throws XOException {
+        if (accountIsOnline(userName, token)) {
+            for (Account account : accountController.getSortedAccounts()) {
+                if (account.getName().equals(userName)) {
+                    return account;
+                }
+            }
+        }
+        throw new XOException("account is offline");
+    }
+
+    private boolean accountIsOnline(String userName, String token) {
+        for (Account account : onlineAccounts.keySet()) {
+            if (account.getName().equals(userName) && onlineAccounts.get(account).equals(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean accountIsOnline(String userName) {
+        for (Account account : onlineAccounts.keySet()) {
+            if (account.getName().equals(userName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getString(String[][] twoD_Array) {
+        String ans = "";
+        for (int i = 0; i < twoD_Array.length; i++) {
+            for (int j = 0; j < 3; j++) {
+                ans = ans + twoD_Array[i][j] + ",";
+            }
+            ans = ans.substring(0, ans.length() - 1);//to remove extra "," thing at the end
+            ans = ans + "-";
+        }
+        ans = ans.substring(0, ans.length() - 1);//to remove extra "-" thing at the end
+        return ans;
+    }
+
+    private String getString(String[] oneD_Array) {
+        String ans = "";
+        for (int i = 0; i < oneD_Array.length; i++) {
+            ans = ans + oneD_Array[i] + "-";
+        }
+        ans = ans.substring(0, ans.length() - 1);//to remove extra "-" thing at the end
+        return ans;
+    }
+
 }
