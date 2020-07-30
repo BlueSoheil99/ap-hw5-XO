@@ -121,8 +121,8 @@ public class GameLogic {
         boolean thereIsPossibility = false;
         for (int i = 0; i < 4; i++) { // i is for row
             for (int j = 0; j < 4; j++) { //j is for column
-                if (!tilesMatrix[i][j].equals(forbiddenSign) && !tilesMatrix[i + 1][j + 1].equals(forbiddenSign) &&
-                        !tilesMatrix[i + 2][j + 2].equals(forbiddenSign) && !tilesMatrix[i + 3][j + 3].equals(forbiddenSign)) {
+                if (tilesMatrix[i][j] != forbiddenSign && tilesMatrix[i + 1][j + 1] != forbiddenSign &&
+                        tilesMatrix[i + 2][j + 2] != forbiddenSign && tilesMatrix[i + 3][j + 3] != forbiddenSign) {
                     thereIsPossibility = true;
                     break;
                 }
@@ -135,8 +135,8 @@ public class GameLogic {
         boolean thereIsPossibility = false;
         for (int i = 0; i < 4; i++) { // i is for row
             for (int j = 3; j < 7; j++) { //j is for column
-                if (!tilesMatrix[i][j].equals(forbiddenSign) && !tilesMatrix[i + 1][j - 1].equals(forbiddenSign) &&
-                        !tilesMatrix[i + 2][j - 2].equals(forbiddenSign) && !tilesMatrix[i + 3][j - 3].equals(forbiddenSign)) {
+                if (tilesMatrix[i][j] != forbiddenSign && tilesMatrix[i + 1][j - 1] != forbiddenSign &&
+                        tilesMatrix[i + 2][j - 2] != forbiddenSign && tilesMatrix[i + 3][j - 3] != forbiddenSign) {
                     thereIsPossibility = true;
                     break;
                 }
@@ -149,8 +149,8 @@ public class GameLogic {
         boolean thereIsPossibility = false;
         for (int i = 0; i < 4; i++) { // i is for row
             for (int j = 0; j < 7; j++) { //j is for column
-                if (!tilesMatrix[i][j].equals(forbiddenSign) && !tilesMatrix[i + 1][j].equals(forbiddenSign) &&
-                        !tilesMatrix[i + 2][j].equals(forbiddenSign) && !tilesMatrix[i + 3][j].equals(forbiddenSign)) {
+                if (tilesMatrix[i][j] != forbiddenSign && tilesMatrix[i + 1][j] != forbiddenSign &&
+                        tilesMatrix[i + 2][j] != forbiddenSign && tilesMatrix[i + 3][j] != forbiddenSign) {
                     thereIsPossibility = true;
                     break;
                 }
@@ -163,8 +163,8 @@ public class GameLogic {
         boolean thereIsPossibility = false;
         for (int i = 0; i < 7; i++) { // i is for row
             for (int j = 0; j < 4; j++) { //j is for column
-                if (!tilesMatrix[i][j].equals(forbiddenSign) && !tilesMatrix[i][j + 1].equals(forbiddenSign) &&
-                        !tilesMatrix[i][j + 2].equals(forbiddenSign) && !tilesMatrix[i][j + 3].equals(forbiddenSign)) {
+                if (tilesMatrix[i][j] != forbiddenSign && tilesMatrix[i][j + 1] != forbiddenSign &&
+                        tilesMatrix[i][j + 2] != forbiddenSign && tilesMatrix[i][j + 3] != forbiddenSign) {
                     thereIsPossibility = true;
                     break;
                 }

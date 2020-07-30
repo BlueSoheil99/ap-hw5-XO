@@ -22,9 +22,11 @@ public class XOClient {
     private String userName;
     private String token;
     private boolean isPlayerTurn;
+    private boolean listeningToServer;
     private String playerSign, opponentSign;
     private String opponentName;
     private String[] board;
+    private BoardListener boardListener;
 
     private GameFrame frame;
     private MenuPanel menu;
@@ -152,6 +154,7 @@ public class XOClient {
         else if (hasPlayerWon) endCode = "0";
         else endCode = "1";
         System.out.print("match ended:  ");
+        listeningToServer = false;
         try {
             String response = requestServerAndGetResponse(new String[]{"7", userName, token, endCode});
             System.out.println("endMatch response: " + response);
@@ -227,6 +230,8 @@ public class XOClient {
         try {
             String response = requestServerAndGetResponse(new String[]{"5", userName, token});
             System.out.println("playRequest response: " + response);
+//            waitForServer();
+
             switch (response.substring(0, 1)) {
                 case "0":
                     String[] info = response.substring(2).split("_");
@@ -240,7 +245,37 @@ public class XOClient {
             System.err.println(e.getMessage());
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
+    }
 
+    private void waitForServer() throws IOException {
+        listeningToServer = true;
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (listeningToServer) { //for when server sends a message during the game
+                    try {
+                        String serverMessage = receiveTheResponse();
+                        String code = serverMessage.substring(0, 1);
+                        String[] info = serverMessage.substring(2).split("_");
+                        switch (code) {
+                            case "5":
+                                prepareTheGame(info);
+                                runPlay(opponentName, playerSign, opponentSign, isPlayerTurn);
+                                break;
+                            case "6":
+                                //when a tile gets selected
+                                if (!info[0].equals(userName)) boardListener.selectOpponent(Integer.parseInt(info[1]));
+                                break;
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        });
+        thread.start();
     }
 
     private void prepareTheGame(String[] info) {
@@ -262,7 +297,7 @@ public class XOClient {
         board = new String[49];
         GameLogic gameLogic = new GameLogic(board, playerSign);
         PlayPanel playPanel = new PlayPanel(this, opponentName, playerSign, opponentSign, isPlayerTurn);
-        playPanel.setBoardListener(new BoardListener() {
+        boardListener = new BoardListener() {
             @Override
             public void selectPlayer(int tileNumber) {
                 System.out.println(tileNumber + " selected");
@@ -283,7 +318,8 @@ public class XOClient {
                 else if (gameLogic.checkForTie()) playPanel.tie();
 
             }
-        });
+        };
+        playPanel.setBoardListener(boardListener);
         frame.initFrame(playPanel);
     }
 

@@ -7,9 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.*;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 
 public class XOSever {
     private String serverIP = "localhost";
@@ -177,17 +175,31 @@ public class XOSever {
     private String requestPlay(String message) {
         try {
             String[] info = message.split("_");
-            player1 = getAccount(info[0], info[1]);
-            player2 = accountController.getSortedAccounts().get(accountController.getSortedAccounts().size() -1);// this part is temporary
+            Account account = getAccount(info[0], info[1]);
+            addToMatch(account);
+            addToMatch(accountController.getSortedAccounts().get(accountController.getSortedAccounts().size() - 1));// todo this part is temporary
 
-            String[] preparationStuff = drawAndStart();
-            return "5_0_" + getString(preparationStuff);
+            if (player2 != null && player1 != null) {
+                String[] preparationStuff = drawAndStart();
+                notifyWaitingPlayerToStartMatch(account, preparationStuff);
+                return "5_0_" + getString(preparationStuff);
+            } else throw new XOException("wait for another player to request");
+
         } catch (XOException e) {
             return "5_1_" + e.getMessage();
         }
     }
 
     private String selectTile(String message) {
+//       todo try {
+//            String[] info = message.split("_");
+//            Account account = getAccount(info[0], info[1]);
+//            String[] selectionDetails = {info[0] , info[2]};
+//            notifyWaitingPlayerToPlay(account, selectionDetails);
+//            return "6_0_" + getString(selectionDetails);
+//        } catch (XOException e) {
+//            return "6_1_" + e.getMessage();
+//        }
         return message;
     }
 
@@ -199,17 +211,21 @@ public class XOSever {
                 if (info[2].equals("0")) {
                     accountController.increaseWins(player1);
                     accountController.increaseLosses(player2);
+                    notifyWaitingPlayerTheResult(account , false);
                 } else if (info[2].equals("1")) {
                     accountController.increaseWins(player2);
                     accountController.increaseLosses(player1);
+                    notifyWaitingPlayerTheResult(account , true);
                 }
             } else if (account.getName().equals(player2.getName())) {
                 if (info[2].equals("0")) {
                     player1.increaseLosses();
                     player2.increaseWins();
+                    notifyWaitingPlayerTheResult(account , true);
                 } else if (info[2].equals("1")) {
                     player1.increaseLosses();
                     player2.increaseWins();
+                    notifyWaitingPlayerTheResult(account , false);
                 }
             } else throw new XOException("there is no match anymore"); // for when the 2nd request from players is sent
 
@@ -238,9 +254,46 @@ public class XOSever {
 
     ////////////////////
     ////////////////////
+
+    private void addToMatch(Account account) throws XOException {
+        if (player2 != null && player1 != null)
+            throw new XOException("server can't handle a new match. try again later");
+        else if (player1 == null) player1 = account;
+        else player2 = account;
+    }
+
     private String[] drawAndStart() {
-        //todo
-        return new String[]{player1.getName(), player2.getName(), "X", "O"};
+        String[] signs = {"X", "O"};
+        List<String> signsList = Arrays.asList(signs);
+        Collections.shuffle(signsList);
+        signsList.toArray(signs);
+
+        Account[] players = {player1, player2};
+        List<Account> playersList = Arrays.asList(players);
+        Collections.shuffle(playersList);
+        playersList.toArray(players);
+
+        return new String[]{players[0].getName(), players[1].getName(), signs[0], signs[1]};
+    }
+
+    private void notifyWaitingPlayerToStartMatch(Account operatingPlayer, String[] preparationStuff) {
+        Account otherPlayer = getOtherPlayer(operatingPlayer);
+//         "5_0_" + getString(preparationStuff);
+    }
+
+    private void notifyWaitingPlayerToPlay(Account operatingPlayer, String[] selectionDetails) {
+        Account otherPlayer = getOtherPlayer(operatingPlayer);
+//        "6_0_" + getString(selectionDetails);
+    }
+
+    private void notifyWaitingPlayerTheResult(Account operatingPlayer, boolean otherPlayerWon) {
+        Account otherPlayer = getOtherPlayer(operatingPlayer);
+//        "6_0_" + getString(selectionDetails);
+    }
+
+    private Account getOtherPlayer(Account currentPlayer) {
+        if (currentPlayer.getName().equals(player1)) return player2;
+        return player1;
     }
 
     private String addNewClient(Account account) {
@@ -294,8 +347,8 @@ public class XOSever {
 
     private String getString(String[] oneD_Array) {
         String ans = "";
-        for (int i = 0; i < oneD_Array.length; i++) {
-            ans = ans + oneD_Array[i] + "_";
+        for (String s : oneD_Array) {
+            ans = ans + s + "_";
         }
         ans = ans.substring(0, ans.length() - 1);//to remove extra "_" thing at the end
         return ans;
