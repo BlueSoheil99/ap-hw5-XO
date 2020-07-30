@@ -20,6 +20,7 @@ public class XOSever {
     private AccountController accountController;
     private HashMap<Account, String> onlineAccounts;
     private SecureRandom secureRandom;
+    private Account player1, player2;
 
     public static void main(String[] args) throws IOException {
         XOSever server = new XOSever();
@@ -93,8 +94,8 @@ public class XOSever {
                 result = selectTile(message);
                 break;
             case "7":
-                System.out.println("endGame request: " + message);
-                result = endGame(message);
+                System.out.println("endMatch request: " + message);
+                result = endMatch(message);
                 break;
             case "8":
                 System.out.println("quitGame request: " + message);
@@ -120,42 +121,42 @@ public class XOSever {
     //////////////////
 
     private String register(String message) {
-        String[] info = message.split("-");
+        String[] info = message.split("_");
         try {
             accountController.register(info[0], info[1]);
-            return "1-0-";
+            return "1_0_";
         } catch (XOException e) {
             String error = e.getMessage();
-            return "1-1-" + error;
+            return "1_1_" + error;
         }
     }
 
     private String login(String message) {
-        String[] info = message.split("-");
+        String[] info = message.split("_");
         try {
             Account client = accountController.login(info[0], info[1]);
             if (accountIsOnline(info[0])) throw new XOException("this user is already online");
             String token = addNewClient(client);
-            return "2-0-" + info[0] + "-" + token;
+            return "2_0_" + info[0] + "_" + token;
         } catch (XOException e) {
             String error = e.getMessage();
-            return "2-1-" + error;
+            return "2_1_" + error;
         }
     }
 
     private String getAccountStates(String message) {
         try {
-            String[] info = message.split("-");
+            String[] info = message.split("_");
             Account account = getAccount(info[0], info[1]);
-            return "3-0-" + account.getWins() + "-" + account.getLosses() + "-" + account.getScore();
+            return "3_0_" + account.getWins() + "_" + account.getLosses() + "_" + account.getScore();
         } catch (XOException e) {
-            return "3-1-" + e.getMessage();
+            return "3_1_" + e.getMessage();
         }
     }
 
     private String getBoardStates(String message) {
         try {
-            String[] info = message.split("-");
+            String[] info = message.split("_");
             getAccount(info[0], info[1]);
             ArrayList<Account> allAccounts = accountController.getSortedAccounts();
             String[][] stats = new String[allAccounts.size()][3];
@@ -167,26 +168,61 @@ public class XOSever {
                 else status = "OFF";
                 stats[i] = new String[]{account.getName(), status, Integer.toString(account.getScore())};
             }
-            return "4-0-" + getString(stats);
+            return "4_0_" + getString(stats);
         } catch (XOException e) {
-            return "4-1-" + e.getMessage();
+            return "4_1_" + e.getMessage();
         }
     }
 
     private String requestPlay(String message) {
-        return message;
+        try {
+            String[] info = message.split("_");
+            player1 = getAccount(info[0], info[1]);
+            player2 = accountController.getSortedAccounts().get(accountController.getSortedAccounts().size() -1);// this part is temporary
+
+            String[] preparationStuff = drawAndStart();
+            return "5_0_" + getString(preparationStuff);
+        } catch (XOException e) {
+            return "5_1_" + e.getMessage();
+        }
     }
 
     private String selectTile(String message) {
         return message;
     }
 
-    private String endGame(String message) {
-        return message;
+    private String endMatch(String message) {
+        try {
+            String[] info = message.split("_");
+            Account account = getAccount(info[0], info[1]);
+            if (account.getName().equals(player1.getName())) {
+                if (info[2].equals("0")) {
+                    accountController.increaseWins(player1);
+                    accountController.increaseLosses(player2);
+                } else if (info[2].equals("1")) {
+                    accountController.increaseWins(player2);
+                    accountController.increaseLosses(player1);
+                }
+            } else if (account.getName().equals(player2.getName())) {
+                if (info[2].equals("0")) {
+                    player1.increaseLosses();
+                    player2.increaseWins();
+                } else if (info[2].equals("1")) {
+                    player1.increaseLosses();
+                    player2.increaseWins();
+                }
+            } else throw new XOException("there is no match anymore"); // for when the 2nd request from players is sent
+
+            player1 = null;
+            player2 = null;
+            return "7_0_";
+        } catch (XOException e) {
+            return "7_1_" + e.getMessage();
+        }
     }
 
     private String quitGame(String message) {
-        String[] info = message.split("-");
+        String[] info = message.split("_");
         if (accountIsOnline(info[0], info[1])) {
             for (Account account : onlineAccounts.keySet()) {
                 if (account.getName().equals(info[0])) {
@@ -194,13 +230,18 @@ public class XOSever {
                     break;
                 }
             }
-            return "8-0-";
+            return "8_0_";
         }
-        return "8-1-" + "failed to quit";
+        return "8_1_" + "failed to quit";
     }
+
 
     ////////////////////
     ////////////////////
+    private String[] drawAndStart() {
+        //todo
+        return new String[]{player1.getName(), player2.getName(), "X", "O"};
+    }
 
     private String addNewClient(Account account) {
         int randomInt = secureRandom.nextInt(100000000);
@@ -245,18 +286,18 @@ public class XOSever {
                 ans = ans + twoD_Array[i][j] + ",";
             }
             ans = ans.substring(0, ans.length() - 1);//to remove extra "," thing at the end
-            ans = ans + "-";
+            ans = ans + "_";
         }
-        ans = ans.substring(0, ans.length() - 1);//to remove extra "-" thing at the end
+        ans = ans.substring(0, ans.length() - 1);//to remove extra "_" thing at the end
         return ans;
     }
 
     private String getString(String[] oneD_Array) {
         String ans = "";
         for (int i = 0; i < oneD_Array.length; i++) {
-            ans = ans + oneD_Array[i] + "-";
+            ans = ans + oneD_Array[i] + "_";
         }
-        ans = ans.substring(0, ans.length() - 1);//to remove extra "-" thing at the end
+        ans = ans.substring(0, ans.length() - 1);//to remove extra "_" thing at the end
         return ans;
     }
 

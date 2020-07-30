@@ -14,6 +14,7 @@ public class PlayPanel extends GamePanel {
     private JLabel playerLabel, opponentLabel, turnLabel;
     private boolean isPlayerTurn;
     private boolean matchFinished = false;
+    private Boolean hasPlayerWon;
 
     public PlayPanel(XOClient client, String opponentName, String playerSign, String opponentSign, boolean isPlayerTurn) {
         this.client = client;
@@ -39,7 +40,7 @@ public class PlayPanel extends GamePanel {
                 int result = JOptionPane.showConfirmDialog(null,
                         "Are you sure you want to forfeit and lose the match?", "Confirm Forfeiting", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION) {
-                    //todo loosing stuff
+                    endGame(false);
                     client.runMenu();
                 }
             } else
@@ -96,24 +97,27 @@ public class PlayPanel extends GamePanel {
         turnLabel.setText("   YOU WON  ");
         turnLabel.setForeground(Color.GREEN);
         board.setWinningTiles(true, winningTiles);
-        endGame();
+        endGame(true);
     }
 
     public void playerLost(Integer[] winningTiles) {
         turnLabel.setText("   YOU LOST ");
         turnLabel.setForeground(Color.RED);
         board.setWinningTiles(false, winningTiles);
-        endGame();
+        endGame(false);
     }
 
     public void tie() {
         turnLabel.setText("  MATCH TIED");
         turnLabel.setForeground(Color.BLUE);
-        endGame();
+        endGame(null);
     }
 
-    private void endGame() {
+    private void endGame(Boolean playerWon) {
         matchFinished = true;
         board.setEnabled(false);
+        hasPlayerWon=playerWon;
+        client.endMatch(hasPlayerWon);
     }
+
 }

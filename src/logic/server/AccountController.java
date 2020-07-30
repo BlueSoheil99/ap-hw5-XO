@@ -105,7 +105,8 @@ public class AccountController {
         return ans;
     }
 
-    public ArrayList<Account> getSortedAccounts() {
+    ArrayList<Account> getSortedAccounts() {
+        // every time this method is called, new accounts get made in memory
         ArrayList<Account> accounts = new ArrayList<>();
         String[] allAccounts = new File(profilesPath).list();
         for (String accountName : allAccounts) {
@@ -116,4 +117,15 @@ public class AccountController {
         Collections.reverse(accounts);
         return accounts;
     }
+
+    void increaseWins(Account account){
+        account.increaseWins();
+        saveAccount(account);
+    }
+    void increaseLosses(Account account){
+        account.increaseLosses();
+        saveAccount(account);
+    }
+
+
 }

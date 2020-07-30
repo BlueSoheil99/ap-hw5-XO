@@ -4,8 +4,8 @@ import gui.*;
 import logic.BoardListener;
 import logic.ResourceManager;
 import logic.XOException;
-import logic.server.Account;
 
+import javax.swing.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.*;
@@ -21,6 +21,7 @@ public class XOClient {
 
     private String userName;
     private String token;
+    private boolean isPlayerTurn;
     private String playerSign, opponentSign;
     private String opponentName;
     private String[] board;
@@ -55,19 +56,18 @@ public class XOClient {
     }
 
     private String requestServerAndGetResponse(String[] standardMessage) throws IOException {
-        String message = standardMessage[0];
+        StringBuilder message = new StringBuilder(standardMessage[0]);
         for (int i = 1; i < standardMessage.length; i++) {
-            message = message + "-" + standardMessage[i];
+            message.append("_").append(standardMessage[i]);
         }
         System.out.println(message.substring(2));
 
-        byte[] data = message.getBytes();
-        String response = "";
+        byte[] data = message.toString().getBytes();
         DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress);
 
         datagramSocket.send(packet);
-        response = receiveTheResponse();
-        return response;
+        return receiveTheResponse();
+
     }
 
     private String receiveTheResponse() throws IOException {
@@ -77,7 +77,7 @@ public class XOClient {
         String response = socketScanner.nextLine();
         response = response.replaceAll("\u0000", "");
 
-        return handleResponse(response);
+        return response.substring(2);
     }
 
     private DatagramPacket readPacket() throws IOException {
@@ -85,12 +85,6 @@ public class XOClient {
         datagramSocket.receive(datagramPacket);
         return datagramPacket;
     }
-
-    private String handleResponse(String response) {
-//        String responseCode = response.substring(0, 1);
-        response = response.substring(2);
-        return response;
-    }//todo delete this method
 
     //////////////////////
     //////////////////////
@@ -120,7 +114,7 @@ public class XOClient {
 
             switch (response.substring(0, 1)) {
                 case "0":
-                    String[] info = response.substring(2).split("-");
+                    String[] info = response.substring(2).split("_");
                     this.userName = info[0];
                     token = info[1];
                     runMenu();
@@ -152,6 +146,26 @@ public class XOClient {
         }
     }
 
+    public void endMatch(Boolean hasPlayerWon) {
+        String endCode;
+        if (hasPlayerWon == null) endCode = "2";
+        else if (hasPlayerWon) endCode = "0";
+        else endCode = "1";
+        System.out.print("match ended:  ");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"7", userName, token, endCode});
+            System.out.println("endMatch response: " + response);
+            switch (response.substring(0, 1)) {
+                case "0":
+                    break;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException | XOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
     public void runMenu() {
         System.out.println("menu running");
         menu = new MenuPanel(this);
@@ -172,7 +186,7 @@ public class XOClient {
             System.out.println("stateRequest response: " + response);
             switch (response.substring(0, 1)) {
                 case "0":
-                    String[] info = response.substring(2).split("-");
+                    String[] info = response.substring(2).split("_");
                     stats[1] = info[0];
                     stats[2] = info[1];
                     stats[3] = info[2];
@@ -193,7 +207,7 @@ public class XOClient {
             System.out.println("boardRequest response: " + response);
             switch (response.substring(0, 1)) {
                 case "0":
-                    String[] info = response.substring(2).split("-");
+                    String[] info = response.substring(2).split("_");
                     String[][] stats = new String[info.length][3];
                     for (int i = 0; i < info.length; i++) {
                         stats[i] = info[i].split(",");
@@ -210,13 +224,40 @@ public class XOClient {
 
     public void playMulti() {
         System.out.println("initializing multiPlayer");
+        try {
+            String response = requestServerAndGetResponse(new String[]{"5", userName, token});
+            System.out.println("playRequest response: " + response);
+            switch (response.substring(0, 1)) {
+                case "0":
+                    String[] info = response.substring(2).split("_");
+                    prepareTheGame(info);
+                    runPlay(opponentName, playerSign, opponentSign, isPlayerTurn);
+                    break;
+                case "1":
+                    throw new XOException(response.substring(2));
+            }
+        } catch (IOException | XOException e) {
+            System.err.println(e.getMessage());
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
 
-        //todo get signs, first turn and opponent name from server
-        playerSign = "X";
-        opponentSign = "O";
-        opponentName = "test";
-        boolean isPlayerTurn = true;
+    }
 
+    private void prepareTheGame(String[] info) {
+        if (info[0].equals(userName)) {
+            isPlayerTurn = true;
+            opponentName = info[1];
+            playerSign = info[2];
+            opponentSign = info[3];
+        } else {
+            isPlayerTurn = false;
+            opponentName = info[0];
+            playerSign = info[3];
+            opponentSign = info[2];
+        }
+    }
+
+    private void runPlay(String opponentName, String playerSign, String opponentSign, boolean isPlayerTurn) {
         stopMenu();
         board = new String[49];
         GameLogic gameLogic = new GameLogic(board, playerSign);
